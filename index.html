@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HxH Nov vs Uvogin バトルロワイヤル</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <header>
+        <h1>HxH Nov vs Uvogin バトルロワイヤル</h1>
+        <p class="subtitle">ノヴとして生き残れ。最後の1人になれば勝利！</p>
+      </header>
+
+      <section class="hud" aria-label="ゲーム情報">
+        <div class="stat"><span>体力</span><strong id="hpValue">100</strong></div>
+        <div class="stat"><span>敵残数</span><strong id="enemiesValue">0</strong></div>
+        <div class="stat"><span>経過時間</span><strong id="timeValue">0.0s</strong></div>
+        <div class="stat"><span>状態</span><strong id="stateValue">待機中</strong></div>
+      </section>
+
+      <section class="controls" aria-label="操作方法">
+        <p><kbd>W A S D</kbd> / <kbd>矢印</kbd>: 移動　<kbd>Space</kbd>: 近距離攻撃　<kbd>Shift</kbd>: 回避ダッシュ</p>
+      </section>
+
+      <section class="arena-wrap">
+        <canvas id="gameCanvas" width="960" height="540" aria-label="バトルアリーナ"></canvas>
+        <div class="overlay" id="overlay">
+          <p id="overlayMessage">「開始」を押してゲームをスタート</p>
+          <button id="startButton" type="button">開始 / リトライ</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="game.js"></script>
+  </body>
+</html>
