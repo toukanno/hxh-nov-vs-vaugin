@@ -22,3 +22,9 @@ python3 -m http.server 8000
 ```
 
 ブラウザで `http://localhost:8000` を開いてください。
+
+## 企画書ドラフト
+
+ユーザー向けシナリオをゲーム企画書形式に整理したドキュメントを追加しています。
+
+- `docs/black-auction-gdd.md`
