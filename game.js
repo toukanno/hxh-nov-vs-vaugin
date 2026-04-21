@@ -8,13 +8,20 @@ const stateValue = document.querySelector("#stateValue");
 const overlay = document.querySelector("#overlay");
 const overlayMessage = document.querySelector("#overlayMessage");
 const startButton = document.querySelector("#startButton");
+const stickZone = document.querySelector("#stickZone");
+const stickKnob = document.querySelector("#stickKnob");
+const btnAttack = document.querySelector("#btnAttack");
+const btnDash = document.querySelector("#btnDash");
 
+// ロジック上のワールド解像度は固定。描画時のみ実サイズにスケールする。
 const world = {
-  width: canvas.width,
-  height: canvas.height,
+  width: 960,
+  height: 540,
 };
 
 const keys = new Set();
+const touchAxis = { x: 0, y: 0, active: false };
+
 let rafId = null;
 let lastTs = 0;
 let running = false;
@@ -23,6 +30,14 @@ let elapsed = 0;
 let player;
 let enemies;
 let attackEvents;
+
+const isTouchCapable =
+  (typeof window !== "undefined" && "ontouchstart" in window) ||
+  (navigator.maxTouchPoints || 0) > 0;
+
+if (isTouchCapable) {
+  document.body.classList.add("touch-enabled");
+}
 
 function rand(min, max) {
   return Math.random() * (max - min) + min;
@@ -101,6 +116,13 @@ function updateHud(stateLabel) {
       hpValue.style.color = "#94ff8a";
     }
   }
+
+  if (btnAttack) {
+    btnAttack.classList.toggle("cooldown", (player?.attackCooldown ?? 0) > 0);
+  }
+  if (btnDash) {
+    btnDash.classList.toggle("cooldown", (player?.dashCooldown ?? 0) > 0);
+  }
 }
 
 function clampEntity(ent) {
@@ -108,29 +130,42 @@ function clampEntity(ent) {
   ent.y = Math.max(ent.r, Math.min(world.height - ent.r, ent.y));
 }
 
-function handleInput(dt) {
+function getMoveVector() {
+  if (touchAxis.active) {
+    return { x: touchAxis.x, y: touchAxis.y };
+  }
+
   const left = keys.has("ArrowLeft") || keys.has("a");
   const right = keys.has("ArrowRight") || keys.has("d");
   const up = keys.has("ArrowUp") || keys.has("w");
   const down = keys.has("ArrowDown") || keys.has("s");
 
-  const vx = (right ? 1 : 0) - (left ? 1 : 0);
-  const vy = (down ? 1 : 0) - (up ? 1 : 0);
+  return {
+    x: (right ? 1 : 0) - (left ? 1 : 0),
+    y: (down ? 1 : 0) - (up ? 1 : 0),
+  };
+}
 
-  let norm = Math.hypot(vx, vy) || 1;
+function handleInput(dt) {
+  const { x: vx, y: vy } = getMoveVector();
+
+  const mag = Math.hypot(vx, vy);
+  if (mag === 0) {
+    return;
+  }
+  const norm = mag;
+
   let speed = player.speed;
-
   if (player.dashTime > 0) {
     speed *= 2.4;
   }
 
-  if (vx !== 0 || vy !== 0) {
-    player.facingX = vx / norm;
-    player.facingY = vy / norm;
-  }
+  player.facingX = vx / norm;
+  player.facingY = vy / norm;
 
-  player.x += (vx / norm) * speed * dt;
-  player.y += (vy / norm) * speed * dt;
+  const scale = Math.min(1, mag);
+  player.x += (vx / norm) * speed * scale * dt;
+  player.y += (vy / norm) * speed * scale * dt;
   clampEntity(player);
 }
 
@@ -366,6 +401,7 @@ function startGame() {
   rafId = requestAnimationFrame(frame);
 }
 
+// ---- キーボード入力 ----
 window.addEventListener("keydown", (event) => {
   const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
   keys.add(key);
@@ -392,6 +428,116 @@ startButton.addEventListener("click", () => {
   startGame();
 });
 
+// ---- タッチ入力（バーチャルスティック） ----
+let stickPointerId = null;
+const stickMaxRadius = 56;
+
+function updateStick(clientX, clientY) {
+  const rect = stickZone.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+  const dist = Math.hypot(dx, dy);
+  const clamped = Math.min(dist, stickMaxRadius);
+  const nx = dist === 0 ? 0 : dx / dist;
+  const ny = dist === 0 ? 0 : dy / dist;
+
+  stickKnob.style.transform = `translate(calc(-50% + ${nx * clamped}px), calc(-50% + ${ny * clamped}px))`;
+  touchAxis.x = nx * (clamped / stickMaxRadius);
+  touchAxis.y = ny * (clamped / stickMaxRadius);
+  touchAxis.active = true;
+}
+
+function resetStick() {
+  stickPointerId = null;
+  touchAxis.x = 0;
+  touchAxis.y = 0;
+  touchAxis.active = false;
+  stickKnob.style.transform = "translate(-50%, -50%)";
+  stickZone.classList.remove("active");
+}
+
+stickZone.addEventListener("pointerdown", (e) => {
+  stickPointerId = e.pointerId;
+  stickZone.setPointerCapture(e.pointerId);
+  stickZone.classList.add("active");
+  updateStick(e.clientX, e.clientY);
+  e.preventDefault();
+});
+
+stickZone.addEventListener("pointermove", (e) => {
+  if (e.pointerId !== stickPointerId) return;
+  updateStick(e.clientX, e.clientY);
+});
+
+function endStick(e) {
+  if (e.pointerId !== stickPointerId) return;
+  try {
+    stickZone.releasePointerCapture(e.pointerId);
+  } catch (_err) {
+    // ignore
+  }
+  resetStick();
+}
+
+stickZone.addEventListener("pointerup", endStick);
+stickZone.addEventListener("pointercancel", endStick);
+
+// ---- アクションボタン ----
+function bindActionButton(btn, fn) {
+  const trigger = (e) => {
+    e.preventDefault();
+    fn();
+  };
+  btn.addEventListener("pointerdown", trigger);
+  btn.addEventListener("click", (e) => {
+    // ポインタ未対応環境用フォールバック
+    e.preventDefault();
+    fn();
+  });
+}
+
+bindActionButton(btnAttack, performAttack);
+bindActionButton(btnDash, triggerDash);
+
+// ---- キャンバスの高 DPI & レスポンシブ ----
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const targetWidth = Math.max(1, Math.floor(rect.width * dpr));
+  const targetHeight = Math.max(1, Math.floor(rect.height * dpr));
+
+  if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+  }
+
+  const scaleX = canvas.width / world.width;
+  const scaleY = canvas.height / world.height;
+  const scale = Math.min(scaleX, scaleY);
+
+  // ワールド座標系で描画するため変換行列をセット
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  render();
+}
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("orientationchange", resizeCanvas);
+
+// 初期化
 resetGame();
-render();
+resizeCanvas();
 updateHud("待機中");
+
+// Capacitor / iOS でのページライフサイクル対応
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && running) {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    overlayMessage.textContent = "一時停止中。再開するには「開始」を押してください。";
+    overlay.classList.remove("hidden");
+    updateHud("一時停止");
+  }
+});

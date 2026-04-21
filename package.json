@@ -1,0 +1,22 @@
+{
+  "name": "hxh-nov-vs-uvogin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HxH Nov vs Uvogin - Capacitor packaged iOS app",
+  "scripts": {
+    "serve": "python3 -m http.server 8000 --directory www",
+    "sync:www": "node scripts/sync-www.mjs",
+    "cap:sync": "npm run sync:www && npx cap sync ios",
+    "cap:open": "npx cap open ios",
+    "ios:add": "npm run sync:www && npx cap add ios",
+    "icons:generate": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/ios": "^6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/assets": "^3.0.5"
+  }
+}

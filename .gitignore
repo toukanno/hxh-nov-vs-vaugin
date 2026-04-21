@@ -5,3 +5,16 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Capacitor: www/ はビルド生成物なので追跡しない
+www/
+
+# iOS / Xcode / CocoaPods (macOS 側で生成される一時ファイル)
+ios/App/Pods/
+ios/App/App/Pods/
+ios/DerivedData/
+ios/App/build/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcuserstate

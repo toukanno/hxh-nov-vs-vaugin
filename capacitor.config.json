@@ -1,0 +1,14 @@
+{
+  "appId": "com.toukanno.hxhnovvsuvogin",
+  "appName": "Nov vs Uvogin",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "always",
+    "scheme": "HxHNovVsUvogin",
+    "backgroundColor": "#0c111bff"
+  },
+  "server": {
+    "iosScheme": "capacitor",
+    "androidScheme": "https"
+  }
+}
