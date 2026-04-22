@@ -65,12 +65,15 @@ function createEnemy(index) {
     y = rand(margin, world.height - margin);
   }
 
+  const hp = rand(36, 58);
+
   return {
     id: index,
     x,
     y,
     r: 17,
-    hp: rand(36, 58),
+    hp,
+    maxHp: hp,
     speed: rand(85, 130),
     contactCooldown: 0,
     windup: rand(0.2, 1.2),
@@ -275,7 +278,7 @@ function render() {
     ctx.fillStyle = "rgba(0,0,0,0.3)";
     ctx.fillRect(e.x - 16, e.y - e.r - 10, 32, 4);
     ctx.fillStyle = "#ffd8de";
-    ctx.fillRect(e.x - 16, e.y - e.r - 10, (Math.max(0, e.hp) / 58) * 32, 4);
+    ctx.fillRect(e.x - 16, e.y - e.r - 10, (Math.max(0, e.hp) / e.maxHp) * 32, 4);
   }
 
   const blink = player.invulnTime > 0 ? Math.sin(elapsed * 45) > 0 : true;
