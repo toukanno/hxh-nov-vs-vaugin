@@ -3,33 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HxH Nov vs Uvogin バトルロワイヤル</title>
+    <title>HxH ノヴ vs ウヴォーギン ― 東京決戦</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="layout">
       <header>
-        <h1>HxH Nov vs Uvogin バトルロワイヤル</h1>
-        <p class="subtitle">ノヴとして生き残れ。最後の1人になれば勝利！</p>
+        <h1>HxH ノヴ vs ウヴォーギン ― 東京決戦</h1>
+        <p class="subtitle" id="subtitle">東京の闇を駆け抜け、ウヴォーギンを討て。</p>
       </header>
 
       <section class="hud" aria-label="ゲーム情報">
         <div class="stat"><span>体力</span><strong id="hpValue">100</strong></div>
+        <div class="stat"><span>念 (Nen)</span><strong id="nenValue">0</strong></div>
+        <div class="stat"><span>Lv</span><strong id="lvValue">1</strong></div>
         <div class="stat"><span>敵残数</span><strong id="enemiesValue">0</strong></div>
-        <div class="stat"><span>経過時間</span><strong id="timeValue">0.0s</strong></div>
+        <div class="stat"><span>経過</span><strong id="timeValue">0.0s</strong></div>
         <div class="stat"><span>状態</span><strong id="stateValue">待機中</strong></div>
       </section>
 
       <section class="controls" aria-label="操作方法">
-        <p><kbd>W A S D</kbd> / <kbd>矢印</kbd>: 移動　<kbd>Space</kbd>: 近距離攻撃　<kbd>Shift</kbd>: 回避ダッシュ</p>
+        <p>
+          <kbd>WASD</kbd> / <kbd>矢印</kbd>: 移動
+          <kbd>Space</kbd>: 近距離攻撃
+          <kbd>Shift</kbd>: 回避ダッシュ
+          <kbd>Q</kbd>: 4次元マンション (瞬間移動)
+          <kbd>E</kbd>: スクリーム (必殺・念3消費)
+          <kbd>Enter</kbd>: 決定 / 会話送り
+        </p>
       </section>
 
       <section class="arena-wrap">
-        <canvas id="gameCanvas" width="960" height="540" aria-label="バトルアリーナ"></canvas>
+        <canvas id="gameCanvas" width="960" height="540" aria-label="ゲーム画面"></canvas>
         <div class="overlay" id="overlay">
-          <p id="overlayMessage">「開始」を押してゲームをスタート</p>
-          <button id="startButton" type="button">開始 / リトライ</button>
+          <p id="overlayTitle" class="overlay-title">HxH ノヴ vs ウヴォーギン</p>
+          <p id="overlayMessage">ノヴとして東京に潜入。ウヴォーギンを討て。</p>
+          <div class="overlay-actions">
+            <button id="startButton" type="button">▶ 東京へ潜入</button>
+            <button id="secondaryButton" type="button" hidden></button>
+          </div>
+          <p class="overlay-hint" id="overlayHint"></p>
         </div>
+      </section>
+
+      <section class="log" aria-label="ログ">
+        <strong>ログ</strong>
+        <ul id="logList"></ul>
       </section>
     </main>
 
